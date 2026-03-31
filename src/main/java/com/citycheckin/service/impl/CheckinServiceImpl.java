@@ -1,0 +1,106 @@
+package com.citycheckin.service.impl;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.citycheckin.common.UserContext;
+import com.citycheckin.common.exception.BusinessException;
+import com.citycheckin.dto.CheckinAddDTO;
+import com.citycheckin.dto.RankItemDTO;
+import com.citycheckin.dto.ReviewDTO;
+import com.citycheckin.entity.Checkin;
+import com.citycheckin.mapper.CheckinMapper;
+import com.citycheckin.service.CheckinService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class CheckinServiceImpl extends ServiceImpl<CheckinMapper, Checkin> implements CheckinService {
+
+    private static final int MAX_DAILY_CHECKIN = 10;
+
+    @Override
+    public void addCheckin(CheckinAddDTO dto) {
+        Integer userId = UserContext.getUserId();
+        int todayCount = baseMapper.countTodayCheckins(userId);
+        if (todayCount >= MAX_DAILY_CHECKIN) {
+            throw new BusinessException(400, "今日打卡次数已达上限（" + MAX_DAILY_CHECKIN + "次）");
+        }
+        if (dto.getDistrictId() == null) {
+            throw new BusinessException(400, "请选择区县");
+        }
+        if (dto.getType() == null || dto.getType().isEmpty()) {
+            throw new BusinessException(400, "请选择打卡类型（food/scenic）");
+        }
+        if ("food".equals(dto.getType()) && dto.getFoodTypeId() == null) {
+            throw new BusinessException(400, "美食打卡请选择美食种类");
+        }
+        if ("scenic".equals(dto.getType()) && dto.getScenicSpotId() == null) {
+            throw new BusinessException(400, "风景打卡请选择风景地");
+        }
+
+        Checkin checkin = new Checkin();
+        checkin.setUserId(userId);
+        checkin.setDistrictId(dto.getDistrictId());
+        checkin.setType(dto.getType());
+        checkin.setFoodTypeId(dto.getFoodTypeId());
+        checkin.setScenicSpotId(dto.getScenicSpotId());
+        checkin.setTitle(dto.getTitle());
+        checkin.setContent(dto.getContent());
+        checkin.setImages(dto.getImages());
+        checkin.setAddress(dto.getAddress());
+        checkin.setLatitude(dto.getLatitude());
+        checkin.setLongitude(dto.getLongitude());
+        checkin.setStatus(0);
+        checkin.setCreateTime(LocalDateTime.now());
+        checkin.setUpdateTime(LocalDateTime.now());
+        save(checkin);
+    }
+
+    @Override
+    public Page<Checkin> pageCheckins(int current, int size, Integer districtId, String type, Integer status, Integer userId) {
+        Page<Checkin> page = new Page<>(current, size);
+        return baseMapper.pageCheckins(page, districtId, type, status, userId);
+    }
+
+    @Override
+    public void review(ReviewDTO dto) {
+        Checkin checkin = getById(dto.getCheckinId());
+        if (checkin == null) throw new BusinessException(404, "打卡记录不存在");
+
+        // 区县管理员只能审核自己区县的内容
+        if (!UserContext.isSuperAdmin()) {
+            Integer adminDistrictId = UserContext.getDistrictId();
+            if (adminDistrictId != null && !adminDistrictId.equals(checkin.getDistrictId())) {
+                throw new BusinessException(403, "无权审核其他区县的内容");
+            }
+        }
+        if (dto.getStatus() != 1 && dto.getStatus() != 2) {
+            throw new BusinessException(400, "审核状态只能为 1（通过）或 2（拒绝）");
+        }
+        checkin.setStatus(dto.getStatus());
+        if (dto.getStatus() == 2) {
+            checkin.setRejectReason(dto.getRejectReason());
+        }
+        checkin.setUpdateTime(LocalDateTime.now());
+        updateById(checkin);
+    }
+
+    @Override
+    public List<RankItemDTO> districtRank(int limit) {
+        return baseMapper.districtRank(limit);
+    }
+
+    @Override
+    public List<RankItemDTO> foodTypeRank(int limit) {
+        return baseMapper.foodTypeRank(limit);
+    }
+
+    @Override
+    public List<RankItemDTO> scenicSpotRank(int limit) {
+        return baseMapper.scenicSpotRank(limit);
+    }
+}
