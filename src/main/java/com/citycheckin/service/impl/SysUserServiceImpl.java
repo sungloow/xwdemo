@@ -157,6 +157,24 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    public List<SysRole> getUserRoles(Integer userId) {
+        return sysRoleMapper.selectRolesByUserId(userId);
+    }
+
+    @Override
+    @Transactional
+    public void removeUsers(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) return;
+        Integer currentUserId = UserContext.getUserId();
+        if (ids.contains(currentUserId)) {
+            throw new BusinessException(400, "不能删除自己");
+        }
+        removeByIds(ids);
+        sysUserRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>()
+                .in(SysUserRole::getUId, ids));
+    }
+
+    @Override
     @Transactional
     public void assignRoles(AssignRoleDTO dto) {
         sysUserRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>()

@@ -7,8 +7,10 @@ import com.citycheckin.dto.LoginDTO;
 import com.citycheckin.dto.RegisterDTO;
 import com.citycheckin.dto.ResetPasswordDTO;
 import com.citycheckin.dto.UserUpdateDTO;
+import com.citycheckin.entity.SysRole;
 import com.citycheckin.entity.SysUser;
 
+import java.util.List;
 import java.util.Map;
 
 public interface SysUserService extends IService<SysUser> {
@@ -28,6 +30,12 @@ public interface SysUserService extends IService<SysUser> {
     void deleteUser(Integer id);
 
     void assignRoles(AssignRoleDTO dto);
+
+    /** 查询指定用户拥有的角色列表 */
+    List<SysRole> getUserRoles(Integer userId);
+
+    /** 批量删除用户 */
+    void removeUsers(List<Integer> ids);
 
     Map<String, Object> getCurrentUserInfo(Integer userId);
 

@@ -6,8 +6,11 @@ import com.citycheckin.common.UserContext;
 import com.citycheckin.common.exception.BusinessException;
 import com.citycheckin.dto.AssignRoleDTO;
 import com.citycheckin.dto.UserUpdateDTO;
+import com.citycheckin.entity.SysRole;
 import com.citycheckin.entity.SysUser;
 import com.citycheckin.service.SysUserService;
+
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -70,5 +73,19 @@ public class UserController {
         if (!UserContext.isSuperAdmin()) throw new BusinessException(403, "无权限");
         sysUserService.assignRoles(dto);
         return Result.ok("分配角色成功");
+    }
+
+    @Operation(summary = "查询用户拥有的角色列表")
+    @GetMapping("/{id}/roles")
+    public Result<List<SysRole>> userRoles(@PathVariable Integer id) {
+        return Result.ok(sysUserService.getUserRoles(id));
+    }
+
+    @Operation(summary = "批量删除用户（超级管理员）", description = "请求体传入用户 ID 数组，不能包含自己")
+    @DeleteMapping("/batch")
+    public Result<?> deleteBatch(@RequestBody List<Integer> ids) {
+        if (!UserContext.isSuperAdmin()) throw new BusinessException(403, "无权限");
+        sysUserService.removeUsers(ids);
+        return Result.ok("批量删除成功");
     }
 }
