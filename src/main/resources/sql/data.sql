@@ -158,15 +158,15 @@ INSERT INTO sys_user_role (R_ID, U_ID) VALUES
 -- ===== 打卡记录示例数据 =====
 INSERT INTO checkin (USER_ID, DISTRICT_ID, TYPE, FOOD_TYPE_ID, SCENIC_SPOT_ID, TITLE, CONTENT, IMAGES, ADDRESS, LATITUDE, LONGITUDE, STATUS, CREATE_TIME, UPDATE_TIME) VALUES
 -- 已发布的打卡记录
-(4, 1, 'scenic', NULL, 2, '打卡洪崖洞，夜景绝美！', '洪崖洞的夜景真的太美了，层叠的吊脚楼在灯光映衬下如梦似幻，就像宫崎骏动画里的场景。', 'http://example.com/img1.jpg,http://example.com/img2.jpg', '重庆市渝中区嘉陵江滨江路88号', 29.563761, 106.578015, 1, DATEADD('DAY', -2, NOW()), DATEADD('DAY', -2, NOW())),
-(4, 5, 'scenic', NULL, 4, '磁器口古镇一日游', '磁器口古镇保存了大量明清时期的建筑，走在青石板路上，感受浓厚的历史文化氛围。', 'http://example.com/img3.jpg', '重庆市沙坪坝区磁器口古镇', 29.566229, 106.467855, 1, DATEADD('DAY', -3, NOW()), DATEADD('DAY', -3, NOW())),
-(5, 1, 'food',   1, NULL, '解放碑附近的火锅必吃！', '在解放碑附近找到了一家超棒的火锅店，锅底麻辣鲜香，食材新鲜，绝对的重庆正宗味道！', 'http://example.com/img4.jpg,http://example.com/img5.jpg', '重庆市渝中区解放碑附近', 29.557478, 106.571264, 1, DATEADD('DAY', -1, NOW()), DATEADD('DAY', -1, NOW())),
-(5, 2, 'food',   2, NULL, '观音桥旁的重庆小面', '这碗小面真的绝了，麻辣味十足，汤底香浓，配上码子，一口下去满嘴留香！', 'http://example.com/img6.jpg', '重庆市江北区观音桥附近', 29.576862, 106.532020, 1, DATEADD('DAY', -4, NOW()), DATEADD('DAY', -4, NOW())),
-(6, 4, 'scenic', NULL, 5, '南滨路夜景超美！', '南滨路是看重庆夜景的最佳地点之一，对岸解放碑的灯光璀璨，江面倒影如画。', 'http://example.com/img7.jpg,http://example.com/img8.jpg,http://example.com/img9.jpg', '重庆市南岸区南滨路', 29.528516, 106.580384, 1, DATEADD('DAY', -5, NOW()), DATEADD('DAY', -5, NOW())),
-(6, 1, 'scenic', NULL, 8, '乘长江索道体验空中飞渡', '长江索道是重庆的标志性体验，在空中俯瞰长江两岸的城市风貌，非常震撼！', 'http://example.com/img10.jpg', '重庆市渝中区新华路', 29.555433, 106.579208, 1, DATEADD('DAY', -6, NOW()), DATEADD('DAY', -6, NOW())),
+(4, 1, 'scenic', NULL, 2, '打卡洪崖洞，夜景绝美！', '洪崖洞的夜景真的太美了，层叠的吊脚楼在灯光映衬下如梦似幻，就像宫崎骏动画里的场景。', 'http://localhost:8080/uploads/example/hyd.jpg,http://localhost:8080/uploads/example/hyd2.jpg', '重庆市渝中区嘉陵江滨江路88号', 29.563761, 106.578015, 1, DATEADD('DAY', -2, NOW()), DATEADD('DAY', -2, NOW())),
+(4, 5, 'scenic', NULL, 4, '磁器口古镇一日游', '磁器口古镇保存了大量明清时期的建筑，走在青石板路上，感受浓厚的历史文化氛围。', 'http://localhost:8080/uploads/example/cqk.jpg', '重庆市沙坪坝区磁器口古镇', 29.566229, 106.467855, 1, DATEADD('DAY', -3, NOW()), DATEADD('DAY', -3, NOW())),
+(5, 1, 'food',   1, NULL, '解放碑附近的火锅必吃！', '在解放碑附近找到了一家超棒的火锅店，锅底麻辣鲜香，食材新鲜，绝对的重庆正宗味道！', 'http://localhost:8080/uploads/example/jfb.jpg,http://localhost:8080/uploads/example/jfb2.jpg', '重庆市渝中区解放碑附近', 29.557478, 106.571264, 1, DATEADD('DAY', -1, NOW()), DATEADD('DAY', -1, NOW())),
+(5, 2, 'food',   2, NULL, '观音桥旁的重庆小面', '这碗小面真的绝了，麻辣味十足，汤底香浓，配上码子，一口下去满嘴留香！', 'http://localhost:8080/uploads/example/gyq.jpg', '重庆市江北区观音桥附近', 29.576862, 106.532020, 1, DATEADD('DAY', -4, NOW()), DATEADD('DAY', -4, NOW())),
+(6, 4, 'scenic', NULL, 5, '南滨路夜景超美！', '南滨路是看重庆夜景的最佳地点之一，对岸解放碑的灯光璀璨，江面倒影如画。', 'http://localhost:8080/uploads/example/lbl.jpg,http://localhost:8080/uploads/example/lbl2.jpg,http://localhost:8080/uploads/example/lbl3.jpg', '重庆市南岸区南滨路', 29.528516, 106.580384, 1, DATEADD('DAY', -5, NOW()), DATEADD('DAY', -5, NOW())),
+(6, 1, 'scenic', NULL, 8, '乘长江索道体验空中飞渡', '长江索道是重庆的标志性体验，在空中俯瞰长江两岸的城市风貌，非常震撼！', 'http://localhost:8080/uploads/example/cjsd.jpg', '重庆市渝中区新华路', 29.555433, 106.579208, 1, DATEADD('DAY', -6, NOW()), DATEADD('DAY', -6, NOW())),
 -- 待审核的打卡记录
-(4, 2, 'food',   3, NULL, '江北区烤鱼新发现', '发现了一家江北区的特色烤鱼店，香辣入味，强烈推荐！', 'http://example.com/img11.jpg', '重庆市江北区某街道', 29.578023, 106.534560, 0, NOW(), NOW()),
-(5, 3, 'scenic', NULL, 3, '鹅岭公园赏秋', '秋天的鹅岭公园景色宜人，树叶变色，拍照效果极佳。', 'http://example.com/img12.jpg', '重庆市渝中区鹅岭正街65号', 29.553829, 106.542373, 0, NOW(), NOW()),
-(6, 8, 'scenic', NULL, 9, '缙云山徒步', '缙云山的徒步路线很不错，植被茂密，空气清新，非常适合周末出行放松。', 'http://example.com/img13.jpg', '重庆市北碚区缙云山', 29.731455, 106.373562, 0, NOW(), NOW()),
+(4, 2, 'food',   3, NULL, '江北区烤鱼新发现', '发现了一家江北区的特色烤鱼店，香辣入味，强烈推荐！', 'http://localhost:8080/uploads/example/jbyc.jpg', '重庆市江北区某街道', 29.578023, 106.534560, 0, NOW(), NOW()),
+(5, 3, 'scenic', NULL, 3, '鹅岭公园赏秋', '秋天的鹅岭公园景色宜人，树叶变色，拍照效果极佳。', 'http://localhost:8080/uploads/example/eglgy.jpg', '重庆市渝中区鹅岭正街65号', 29.553829, 106.542373, 0, NOW(), NOW()),
+(6, 8, 'scenic', NULL, 9, '缙云山徒步', '缙云山的徒步路线很不错，植被茂密，空气清新，非常适合周末出行放松。', 'http://localhost:8080/uploads/example/jms.jpg', '重庆市北碚区缙云山', 29.731455, 106.373562, 0, NOW(), NOW()),
 -- 已拒绝的打卡记录
 (4, 1, 'food',   1, NULL, '随便发个测试', '测试内容不够规范', '', '', NULL, NULL, 2, DATEADD('DAY', -7, NOW()), DATEADD('DAY', -7, NOW()));

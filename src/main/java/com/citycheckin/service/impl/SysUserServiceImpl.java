@@ -231,9 +231,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 带 children 的完整菜单树（非按钮类型，含所有字段）
         List<SysMenu> menuTree = sysMenuService.getMenuTreeByUserId(userId);
 
-        List<String> buttonCodes = flatMenus.stream()
+        List<SysMenu> buttonCodes = flatMenus.stream()
                 .filter(m -> "button".equals(m.getType()) && m.getCode() != null && !m.getCode().isEmpty())
-                .map(SysMenu::getCode)
                 .distinct()
                 .collect(Collectors.toList());
 
@@ -247,7 +246,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         info.put("districtId", user.getDistrictId());
         info.put("roles", roles.stream().map(SysRole::getCode).collect(Collectors.toList()));
         info.put("menus", menuTree);
-        info.put("buttonCodes", buttonCodes);
+        info.put("buttons", buttonCodes);
         return info;
     }
 }
