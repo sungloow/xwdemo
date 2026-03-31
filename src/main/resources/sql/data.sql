@@ -43,27 +43,6 @@ INSERT INTO scenic_spot (ID, NAME, DISTRICT_ID, DESCRIPTION, ADDRESS, CREATE_TIM
 (10, '长寿湖',         10, '重庆著名的湖泊景区，风景秀丽', '重庆市长寿区长寿湖镇', NOW(), NOW(), 'admin');
 
 -- ===== 菜单数据 =====
--- INSERT INTO sys_menu (ID, PID, TYPE, LEVEL, CODE, NAME, COMPONENT_NAME, ICON, IS_SHOW, COMPONENT, PATH, SORT_ORDER, AFFIX, KEEP_ALIVE, CREATE_TIME, UPDATE_TIME, CREATOR) VALUES
--- -- 一级菜单
--- (1,  0,  'menu',   1, 'home',        '首页',     'Home',        'home',           1, 'views/home/index',         '/home',        1,  1, 0, NOW(), NOW(), 'admin'),
--- (2,  0,  'menu',   1, 'checkin',     '打卡管理', 'Checkin',     'location',       1, 'views/checkin/index',      '/checkin',     2,  0, 0, NOW(), NOW(), 'admin'),
--- (3,  0,  'menu',   1, 'content',     '内容审核', 'ContentReview','audit',         1, 'views/content/index',      '/content',     3,  0, 0, NOW(), NOW(), 'admin'),
--- (4,  0,  'menu',   1, 'system',      '系统管理', 'System',      'setting',        1, 'views/system/index',       '/system',      4,  0, 0, NOW(), NOW(), 'admin'),
--- (5,  0,  'menu',   1, 'scenic',      '景点管理', 'Scenic',      'picture',        1, 'views/scenic/index',       '/scenic',      5,  0, 0, NOW(), NOW(), 'admin'),
--- (6,  0,  'menu',   1, 'personal',    '个人中心', 'Personal',    'user',           1, 'views/personal/index',     '/personal',    6,  0, 0, NOW(), NOW(), 'admin'),
--- -- 系统管理子菜单
--- (7,  4,  'menu',   2, 'user',        '人员管理', 'User',        'peoples',        1, 'views/system/user',        '/system/user', 1,  0, 0, NOW(), NOW(), 'admin'),
--- (8,  4,  'menu',   2, 'role',        '角色管理', 'Role',        'role',           1, 'views/system/role',        '/system/role', 2,  0, 0, NOW(), NOW(), 'admin'),
--- (9,  4,  'menu',   2, 'menuManage',  '菜单管理', 'MenuManage',  'tree-table',     1, 'views/system/menu',        '/system/menu', 3,  0, 0, NOW(), NOW(), 'admin'),
--- (10, 4,  'menu',   2, 'district',    '区县管理', 'District',    'map',            1, 'views/system/district',    '/system/district', 4, 0, 0, NOW(), NOW(), 'admin'),
--- (11, 4,  'menu',   2, 'foodType',    '美食种类', 'FoodType',    'food',           1, 'views/system/foodtype',    '/system/foodtype', 5, 0, 0, NOW(), NOW(), 'admin'),
--- -- 按钮权限
--- (12, 7,  'button', 2, 'user:add',    '新增用户', NULL, NULL, 0, NULL, NULL, 1, 0, 0, NOW(), NOW(), 'admin'),
--- (13, 7,  'button', 2, 'user:edit',   '编辑用户', NULL, NULL, 0, NULL, NULL, 2, 0, 0, NOW(), NOW(), 'admin'),
--- (14, 7,  'button', 2, 'user:delete', '删除用户', NULL, NULL, 0, NULL, NULL, 3, 0, 0, NOW(), NOW(), 'admin'),
--- (15, 3,  'button', 2, 'content:review','审核内容',NULL, NULL, 0, NULL, NULL, 1, 0, 0, NOW(), NOW(), 'admin');
-
-
 insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`, icon) values(
 1, 0, '系统管理', 'system', 1, 'menu', 1, 'layouts/index', '/system', 1, 'Setting'
 );
@@ -119,6 +98,53 @@ insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,TYPE,`IS_SHOW`, component,pat
 71,70,'首页','index',0,'menu',1,'home/index','/index',2,1,'HomeFilled'
 );
 
+-- 系统管理 → 区县管理
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon,COMPONENT_NAME,KEEP_ALIVE) values(
+17, 1, '区县管理', 'system:district', 4, 'menu', 1, 'system/district/index', '/system/district', 2, 'MapLocation', 'District', 1
+);
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,`level`,icon) values
+(18, 17, '新增', 'system:district:add',    1, 'button', 1, 3, 'Plus'),
+(19, 17, '编辑', 'system:district:update', 2, 'button', 1, 3, 'Edit'),
+(20, 17, '删除', 'system:district:delete', 3, 'button', 1, 3, 'Delete');
+
+-- 系统管理 → 美食种类
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon,COMPONENT_NAME,KEEP_ALIVE) values(
+21, 1, '美食种类', 'system:foodType', 5, 'menu', 1, 'system/foodType/index', '/system/foodtype', 2, 'Food', 'FoodType', 1
+);
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,`level`,icon) values
+(22, 21, '新增', 'system:foodType:add',    1, 'button', 1, 3, 'Plus'),
+(23, 21, '编辑', 'system:foodType:update', 2, 'button', 1, 3, 'Edit'),
+(24, 21, '删除', 'system:foodType:delete', 3, 'button', 1, 3, 'Delete');
+
+-- 打卡管理（顶级目录）
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon) values(
+30, 0, '打卡管理', 'checkin', 2, 'menu', 1, 'layouts/index', '/checkin', 1, 'Calendar'
+);
+-- 打卡列表（管理端，超级管理员/区县管理员可见）
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon,COMPONENT_NAME,KEEP_ALIVE) values(
+31, 30, '打卡列表', 'checkin:list', 1, 'menu', 1, 'checkin/list/index', '/checkin/list', 2, 'List', 'CheckinList', 1
+);
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,`level`,icon) values
+(32, 31, '审核', 'checkin:review', 1, 'button', 1, 3, 'Finished');
+-- 我的打卡（普通用户可见）
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon,COMPONENT_NAME,KEEP_ALIVE) values(
+33, 30, '我的打卡', 'checkin:my', 2, 'menu', 1, 'checkin/my/index', '/checkin/my', 2, 'Postcard', 'MyCheckin', 1
+);
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,`level`,icon) values
+(34, 33, '发起打卡', 'checkin:add', 1, 'button', 1, 3, 'Plus');
+
+-- 景点管理（顶级目录）
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon) values(
+40, 0, '景点管理', 'scenic', 3, 'menu', 1, 'layouts/index', '/scenic', 1, 'Location'
+);
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon,COMPONENT_NAME,KEEP_ALIVE) values(
+41, 40, '景点列表', 'scenic:list', 1, 'menu', 1, 'scenic/index', '/scenic/list', 2, 'PictureFilled', 'ScenicList', 1
+);
+insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,`level`,icon) values
+(42, 41, '新增', 'scenic:add',    1, 'button', 1, 3, 'Plus'),
+(43, 41, '编辑', 'scenic:update', 2, 'button', 1, 3, 'Edit'),
+(44, 41, '删除', 'scenic:delete', 3, 'button', 1, 3, 'Delete');
+
 -- ===== 角色数据 =====
 INSERT INTO sys_role (ID, CODE, ROLE_NAME, ROLE_TYPE, DESCRIPTION, ENABLED, CREATE_TIME, UPDATE_TIME, CREATOR) VALUES
 (1, 'SUPER_ADMIN',    '超级管理员', 'system', '拥有所有权限的超级管理员', '1', NOW(), NOW(), 'system'),
@@ -126,15 +152,25 @@ INSERT INTO sys_role (ID, CODE, ROLE_NAME, ROLE_TYPE, DESCRIPTION, ENABLED, CREA
 (3, 'NORMAL_USER',    '普通用户',   'system', '可以上传打卡内容，查看发布信息', '1', NOW(), NOW(), 'system');
 
 -- ===== 角色菜单关联 =====
--- 超级管理员拥有所有菜单
+-- 超级管理员：拥有全部菜单
 INSERT INTO sys_role_menu (R_ID, M_ID) VALUES
-(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7),(1,8),(1,9),(1,10),(1,11),(1,12),(1,13),(1,14),(1,15);
--- 区县管理员：首页、内容审核、景点管理、个人中心
+(1,1),(1,2),(1,3),(1,4),(1,5),
+(1,6),(1,7),(1,8),(1,9),(1,10),
+(1,11),(1,12),(1,13),(1,14),(1,15),(1,16),
+(1,17),(1,18),(1,19),(1,20),
+(1,21),(1,22),(1,23),(1,24),
+(1,30),(1,31),(1,32),(1,33),(1,34),
+(1,40),(1,41),(1,42),(1,43),(1,44),
+(1,70),(1,71);
+-- 区县管理员：首页 + 打卡列表（含审核按钮）+ 景点管理（含增删改）
 INSERT INTO sys_role_menu (R_ID, M_ID) VALUES
-(2,1),(2,3),(2,5),(2,6),(2,15);
--- 普通用户：首页、打卡、个人中心
+(2,70),(2,71),
+(2,30),(2,31),(2,32),
+(2,40),(2,41),(2,42),(2,43),(2,44);
+-- 普通用户：首页 + 我的打卡（含发起打卡）
 INSERT INTO sys_role_menu (R_ID, M_ID) VALUES
-(3,1),(3,2),(3,6);
+(3,70),(3,71),
+(3,30),(3,33),(3,34);
 
 -- ===== 用户数据 =====
 -- 密码统一为 admin123 / user123（Demo明文存储）
