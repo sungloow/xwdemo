@@ -7,3 +7,9 @@ target/
 .factorypath
 
 apis/
+
+uploads/2026/
+
+*/node_modules/
+*/dist/
+*/build/
