@@ -7,10 +7,11 @@ export interface RankItem {
   districtName?: string;
 }
 
+/** 与后端 /home/overview 返回字段一致（旧名 foodRank/scenicRank 已废弃） */
 export interface HomeOverview {
   districtRank: RankItem[];
-  foodRank: RankItem[];
-  scenicRank: RankItem[];
+  foodTypeRank: RankItem[];
+  scenicSpotRank: RankItem[];
 }
 
 export const getHomeOverview = (limit = 10) =>

@@ -147,14 +147,14 @@
               美食热度
             </div>
             <div class="mt-3 space-y-2">
-              <div v-for="(item, idx) in overview.foodRank" :key="item.id" class="flex items-center justify-between text-sm">
+              <div v-for="(item, idx) in overview.foodTypeRank" :key="item.id" class="flex items-center justify-between text-sm">
                 <div class="flex items-center gap-2 min-w-0">
                   <span class="w-6 text-slate-400 tabular-nums">{{ idx + 1 }}</span>
                   <span class="truncate text-slate-700">{{ item.name }}</span>
                 </div>
                 <span class="text-slate-500 tabular-nums">{{ item.count }}</span>
               </div>
-              <div v-if="!overview.foodRank.length" class="text-sm text-slate-400">暂无数据</div>
+              <div v-if="!overview.foodTypeRank.length" class="text-sm text-slate-400">暂无数据</div>
             </div>
           </div>
 
@@ -165,7 +165,7 @@
             </div>
             <div class="mt-3 space-y-2">
               <div
-                v-for="(item, idx) in overview.scenicRank"
+                v-for="(item, idx) in overview.scenicSpotRank"
                 :key="item.id"
                 class="flex items-center justify-between text-sm"
               >
@@ -175,7 +175,7 @@
                 </div>
                 <span class="text-slate-500 tabular-nums">{{ item.count }}</span>
               </div>
-              <div v-if="!overview.scenicRank.length" class="text-sm text-slate-400">暂无数据</div>
+              <div v-if="!overview.scenicSpotRank.length" class="text-sm text-slate-400">暂无数据</div>
             </div>
           </div>
         </div>
@@ -205,8 +205,8 @@ const rankSection = ref<HTMLElement | null>(null);
 const loading = ref(true);
 const overview = reactive<HomeOverview>({
   districtRank: [],
-  foodRank: [],
-  scenicRank: [],
+  foodTypeRank: [],
+  scenicSpotRank: [],
 });
 
 function scrollToRank() {
