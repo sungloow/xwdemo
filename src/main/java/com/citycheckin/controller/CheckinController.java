@@ -4,6 +4,7 @@ import com.citycheckin.common.PageResult;
 import com.citycheckin.common.Result;
 import com.citycheckin.common.UserContext;
 import com.citycheckin.dto.CheckinAddDTO;
+import com.citycheckin.dto.CommentAddDTO;
 import com.citycheckin.dto.ReviewDTO;
 import com.citycheckin.service.CheckinService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,5 +70,26 @@ public class CheckinController {
     public Result<?> review(@RequestBody ReviewDTO dto) {
         checkinService.review(dto);
         return Result.ok("审核完成");
+    }
+
+    @Operation(summary = "点赞打卡内容", description = "登录用户可对已发布打卡点赞")
+    @PostMapping("/{id}/like")
+    public Result<?> like(@PathVariable Integer id) {
+        checkinService.likePublishedCheckin(id, UserContext.getUserId());
+        return Result.ok("点赞成功");
+    }
+
+    @Operation(summary = "取消点赞", description = "登录用户取消对已发布打卡的点赞")
+    @DeleteMapping("/{id}/like")
+    public Result<?> unlike(@PathVariable Integer id) {
+        checkinService.unlikePublishedCheckin(id, UserContext.getUserId());
+        return Result.ok("已取消点赞");
+    }
+
+    @Operation(summary = "发表评论", description = "登录用户可对已发布打卡发表评论")
+    @PostMapping("/{id}/comment")
+    public Result<?> comment(@PathVariable Integer id, @RequestBody CommentAddDTO dto) {
+        checkinService.addComment(id, UserContext.getUserId(), dto.getContent());
+        return Result.ok("评论成功");
     }
 }

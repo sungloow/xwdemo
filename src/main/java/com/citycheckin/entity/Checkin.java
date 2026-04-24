@@ -43,4 +43,10 @@ public class Checkin {
     private String scenicSpotName;
     @TableField(exist = false)
     private String username;
+    @TableField(exist = false)
+    private Integer likeCount;
+    @TableField(exist = false)
+    private Integer commentCount;
+    @TableField(exist = false)
+    private Boolean liked;
 }

@@ -12,7 +12,9 @@ import java.util.List;
 public interface CheckinMapper extends BaseMapper<Checkin> {
 
     @Select("<script>" +
-            "SELECT c.*, d.NAME as district_name, f.NAME as food_type_name, s.NAME as scenic_spot_name, u.USERNAME as username " +
+            "SELECT c.*, d.NAME as district_name, f.NAME as food_type_name, s.NAME as scenic_spot_name, u.USERNAME as username, " +
+            "(SELECT COUNT(1) FROM checkin_like cl WHERE cl.CHECKIN_ID = c.ID) as like_count, " +
+            "(SELECT COUNT(1) FROM checkin_comment cc WHERE cc.CHECKIN_ID = c.ID) as comment_count " +
             "FROM checkin c " +
             "LEFT JOIN district d ON c.DISTRICT_ID = d.ID " +
             "LEFT JOIN food_type f ON c.FOOD_TYPE_ID = f.ID " +
@@ -53,4 +55,15 @@ public interface CheckinMapper extends BaseMapper<Checkin> {
     /** 统计某用户今天打卡次数 */
     @Select("SELECT COUNT(*) FROM checkin WHERE USER_ID = #{userId} AND CAST(CREATE_TIME AS DATE) = CAST(NOW() AS DATE)")
     int countTodayCheckins(@Param("userId") Integer userId);
+
+    @Select("SELECT c.*, d.NAME as district_name, f.NAME as food_type_name, s.NAME as scenic_spot_name, u.USERNAME as username, " +
+            "(SELECT COUNT(1) FROM checkin_like cl WHERE cl.CHECKIN_ID = c.ID) as like_count, " +
+            "(SELECT COUNT(1) FROM checkin_comment cc WHERE cc.CHECKIN_ID = c.ID) as comment_count " +
+            "FROM checkin c " +
+            "LEFT JOIN district d ON c.DISTRICT_ID = d.ID " +
+            "LEFT JOIN food_type f ON c.FOOD_TYPE_ID = f.ID " +
+            "LEFT JOIN scenic_spot s ON c.SCENIC_SPOT_ID = s.ID " +
+            "LEFT JOIN sys_user u ON c.USER_ID = u.ID " +
+            "WHERE c.ID = #{id} AND c.STATUS = 1")
+    Checkin selectPublishedDetailById(@Param("id") Integer id);
 }

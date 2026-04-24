@@ -2,6 +2,8 @@
 -- 城市打卡后台管理系统 DDL
 -- ========================
 
+DROP TABLE IF EXISTS checkin_comment;
+DROP TABLE IF EXISTS checkin_like;
 DROP TABLE IF EXISTS checkin;
 DROP TABLE IF EXISTS scenic_spot;
 DROP TABLE IF EXISTS food_type;
@@ -142,5 +144,24 @@ CREATE TABLE checkin (
     REJECT_REASON  VARCHAR(500)          COMMENT '拒绝原因',
     CREATE_TIME    DATETIME              COMMENT '打卡时间',
     UPDATE_TIME    DATETIME              COMMENT '更新时间',
+    PRIMARY KEY (ID)
+);
+
+-- 打卡点赞表
+CREATE TABLE checkin_like (
+    ID          INT NOT NULL AUTO_INCREMENT COMMENT '点赞ID',
+    CHECKIN_ID  INT                         COMMENT '打卡ID',
+    USER_ID     INT                         COMMENT '用户ID',
+    CREATE_TIME DATETIME                    COMMENT '点赞时间',
+    PRIMARY KEY (ID)
+);
+
+-- 打卡评论表
+CREATE TABLE checkin_comment (
+    ID          INT NOT NULL AUTO_INCREMENT COMMENT '评论ID',
+    CHECKIN_ID  INT                         COMMENT '打卡ID',
+    USER_ID     INT                         COMMENT '用户ID',
+    CONTENT     VARCHAR(200)                COMMENT '评论内容',
+    CREATE_TIME DATETIME                    COMMENT '评论时间',
     PRIMARY KEY (ID)
 );

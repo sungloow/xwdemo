@@ -3,6 +3,7 @@ package com.citycheckin.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.citycheckin.dto.CheckinAddDTO;
+import com.citycheckin.entity.CheckinComment;
 import com.citycheckin.dto.RankItemDTO;
 import com.citycheckin.dto.ReviewDTO;
 import com.citycheckin.entity.Checkin;
@@ -22,4 +23,14 @@ public interface CheckinService extends IService<Checkin> {
     List<RankItemDTO> foodTypeRank(int limit);
 
     List<RankItemDTO> scenicSpotRank(int limit);
+
+    Checkin getPublishedDetail(Integer id, Integer currentUserId);
+
+    List<CheckinComment> listPublishedComments(Integer checkinId);
+
+    void likePublishedCheckin(Integer checkinId, Integer userId);
+
+    void unlikePublishedCheckin(Integer checkinId, Integer userId);
+
+    void addComment(Integer checkinId, Integer userId, String content);
 }

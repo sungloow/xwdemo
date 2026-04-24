@@ -11,6 +11,10 @@ export default defineConfig({
     },
   },
   server: {
+    watch: {
+          usePolling: true,
+          interval: 1000
+      },
     port: 5175,
     proxy: {
       '/api': {

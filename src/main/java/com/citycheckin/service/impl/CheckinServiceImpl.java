@@ -1,5 +1,6 @@
 package com.citycheckin.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.citycheckin.common.UserContext;
@@ -8,8 +9,14 @@ import com.citycheckin.dto.CheckinAddDTO;
 import com.citycheckin.dto.RankItemDTO;
 import com.citycheckin.dto.ReviewDTO;
 import com.citycheckin.entity.Checkin;
+import com.citycheckin.entity.CheckinComment;
+import com.citycheckin.entity.CheckinLike;
+import com.citycheckin.entity.ScenicSpot;
+import com.citycheckin.mapper.CheckinCommentMapper;
+import com.citycheckin.mapper.CheckinLikeMapper;
 import com.citycheckin.mapper.CheckinMapper;
 import com.citycheckin.service.CheckinService;
+import com.citycheckin.service.ScenicSpotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +28,9 @@ import java.util.List;
 public class CheckinServiceImpl extends ServiceImpl<CheckinMapper, Checkin> implements CheckinService {
 
     private static final int MAX_DAILY_CHECKIN = 10;
+    private final ScenicSpotService scenicSpotService;
+    private final CheckinLikeMapper checkinLikeMapper;
+    private final CheckinCommentMapper checkinCommentMapper;
 
     @Override
     public void addCheckin(CheckinAddDTO dto) {
@@ -40,6 +50,15 @@ public class CheckinServiceImpl extends ServiceImpl<CheckinMapper, Checkin> impl
         }
         if ("scenic".equals(dto.getType()) && dto.getScenicSpotId() == null) {
             throw new BusinessException(400, "风景打卡请选择风景地");
+        }
+        if ("scenic".equals(dto.getType())) {
+            ScenicSpot scenicSpot = scenicSpotService.getById(dto.getScenicSpotId());
+            if (scenicSpot == null) {
+                throw new BusinessException(404, "所选景点不存在");
+            }
+            if (!dto.getDistrictId().equals(scenicSpot.getDistrictId())) {
+                throw new BusinessException(400, "所选景点与所属区县不匹配");
+            }
         }
 
         Checkin checkin = new Checkin();
@@ -102,5 +121,75 @@ public class CheckinServiceImpl extends ServiceImpl<CheckinMapper, Checkin> impl
     @Override
     public List<RankItemDTO> scenicSpotRank(int limit) {
         return baseMapper.scenicSpotRank(limit);
+    }
+
+    @Override
+    public Checkin getPublishedDetail(Integer id, Integer currentUserId) {
+        Checkin checkin = baseMapper.selectPublishedDetailById(id);
+        if (checkin == null) {
+            throw new BusinessException(404, "打卡内容不存在或未发布");
+        }
+        boolean liked = false;
+        if (currentUserId != null) {
+            liked = checkinLikeMapper.selectCount(new LambdaQueryWrapper<CheckinLike>()
+                    .eq(CheckinLike::getCheckinId, id)
+                    .eq(CheckinLike::getUserId, currentUserId)) > 0;
+        }
+        checkin.setLiked(liked);
+        return checkin;
+    }
+
+    @Override
+    public List<CheckinComment> listPublishedComments(Integer checkinId) {
+        ensurePublished(checkinId);
+        return checkinCommentMapper.selectByCheckinId(checkinId);
+    }
+
+    @Override
+    public void likePublishedCheckin(Integer checkinId, Integer userId) {
+        ensurePublished(checkinId);
+        long exists = checkinLikeMapper.selectCount(new LambdaQueryWrapper<CheckinLike>()
+                .eq(CheckinLike::getCheckinId, checkinId)
+                .eq(CheckinLike::getUserId, userId));
+        if (exists > 0) return;
+
+        CheckinLike like = new CheckinLike();
+        like.setCheckinId(checkinId);
+        like.setUserId(userId);
+        like.setCreateTime(LocalDateTime.now());
+        checkinLikeMapper.insert(like);
+    }
+
+    @Override
+    public void unlikePublishedCheckin(Integer checkinId, Integer userId) {
+        ensurePublished(checkinId);
+        checkinLikeMapper.delete(new LambdaQueryWrapper<CheckinLike>()
+                .eq(CheckinLike::getCheckinId, checkinId)
+                .eq(CheckinLike::getUserId, userId));
+    }
+
+    @Override
+    public void addComment(Integer checkinId, Integer userId, String content) {
+        ensurePublished(checkinId);
+        if (content == null || content.trim().isEmpty()) {
+            throw new BusinessException(400, "评论内容不能为空");
+        }
+        String normalized = content.trim();
+        if (normalized.length() > 200) {
+            throw new BusinessException(400, "评论内容不能超过200字");
+        }
+        CheckinComment comment = new CheckinComment();
+        comment.setCheckinId(checkinId);
+        comment.setUserId(userId);
+        comment.setContent(normalized);
+        comment.setCreateTime(LocalDateTime.now());
+        checkinCommentMapper.insert(comment);
+    }
+
+    private void ensurePublished(Integer checkinId) {
+        Checkin checkin = getById(checkinId);
+        if (checkin == null || !Integer.valueOf(1).equals(checkin.getStatus())) {
+            throw new BusinessException(404, "打卡内容不存在或未发布");
+        }
     }
 }

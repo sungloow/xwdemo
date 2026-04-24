@@ -205,3 +205,18 @@ INSERT INTO checkin (USER_ID, DISTRICT_ID, TYPE, FOOD_TYPE_ID, SCENIC_SPOT_ID, T
 (6, 8, 'scenic', NULL, 9, '缙云山徒步', '缙云山的徒步路线很不错，植被茂密，空气清新，非常适合周末出行放松。', 'http://localhost:8080/uploads/example/jms.jpg', '重庆市北碚区缙云山', 29.731455, 106.373562, 0, NOW(), NOW()),
 -- 已拒绝的打卡记录
 (4, 1, 'food',   1, NULL, '随便发个测试', '测试内容不够规范', '', '', NULL, NULL, 2, DATEADD('DAY', -7, NOW()), DATEADD('DAY', -7, NOW()));
+
+-- ===== 点赞示例数据 =====
+INSERT INTO checkin_like (CHECKIN_ID, USER_ID, CREATE_TIME) VALUES
+(1, 5, DATEADD('DAY', -1, NOW())),
+(1, 6, DATEADD('DAY', -1, NOW())),
+(3, 4, DATEADD('HOUR', -12, NOW())),
+(5, 4, DATEADD('HOUR', -8, NOW())),
+(5, 5, DATEADD('HOUR', -6, NOW()));
+
+-- ===== 评论示例数据 =====
+INSERT INTO checkin_comment (CHECKIN_ID, USER_ID, CONTENT, CREATE_TIME) VALUES
+(1, 5, '这组夜景图也太会拍了，洪崖洞晚上真的很值。', DATEADD('HOUR', -18, NOW())),
+(1, 6, '求问几点去人会少一点？', DATEADD('HOUR', -10, NOW())),
+(3, 4, '这家店我也吃过，锅底确实很稳。', DATEADD('HOUR', -16, NOW())),
+(5, 5, '南滨路的夜景每次看都不会腻。', DATEADD('HOUR', -7, NOW()));
