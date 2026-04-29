@@ -4,6 +4,7 @@ import com.citycheckin.common.PageResult;
 import com.citycheckin.common.Result;
 import com.citycheckin.common.UserContext;
 import com.citycheckin.dto.CheckinAddDTO;
+import com.citycheckin.dto.CheckinUpdateDTO;
 import com.citycheckin.dto.CommentAddDTO;
 import com.citycheckin.dto.ReviewDTO;
 import com.citycheckin.service.CheckinService;
@@ -26,6 +27,13 @@ public class CheckinController {
     public Result<?> add(@RequestBody CheckinAddDTO dto) {
         checkinService.addCheckin(dto);
         return Result.ok("打卡成功，等待审核");
+    }
+
+    @Operation(summary = "编辑我的打卡", description = "只能编辑自己的待审核/已拒绝打卡；保存后重新进入待审核")
+    @PutMapping("/myUpdate")
+    public Result<?> myUpdate(@RequestBody CheckinUpdateDTO dto) {
+        checkinService.updateMyCheckin(dto);
+        return Result.ok("保存成功，等待审核");
     }
 
     @Operation(summary = "打卡列表（管理端）",
@@ -53,6 +61,12 @@ public class CheckinController {
             @Parameter(description = "状态 0待审核 1已发布 2已拒绝") @RequestParam(required = false) Integer status) {
         return Result.ok(PageResult.of(
                 checkinService.pageCheckins(current, size, null, type, status, UserContext.getUserId())));
+    }
+
+    @Operation(summary = "我的打卡详情", description = "查询当前登录用户自己的任意状态打卡详情")
+    @GetMapping("/myDetail/{id}")
+    public Result<?> myDetail(@PathVariable Integer id) {
+        return Result.ok(checkinService.getMyDetail(id, UserContext.getUserId()));
     }
 
     @Operation(summary = "待审核列表", description = "区县管理员：只看本区县待审核；超级管理员：看全部待审核")

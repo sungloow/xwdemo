@@ -125,13 +125,6 @@ insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`p
 );
 insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,`level`,icon) values
 (32, 31, '审核', 'checkin:review', 1, 'button', 1, 3, 'Finished');
--- 我的打卡（普通用户可见）
-insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon,COMPONENT_NAME,KEEP_ALIVE) values(
-33, 30, '我的打卡', 'checkin:my', 2, 'menu', 1, 'checkin/my/index', '/checkin/my', 2, 'Postcard', 'MyCheckin', 1
-);
-insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,`level`,icon) values
-(34, 33, '发起打卡', 'checkin:add', 1, 'button', 1, 3, 'Plus');
-
 -- 景点管理（顶级目录）
 insert into sys_menu(ID,PID,NAME,CODE,`SORT_ORDER`,`TYPE`,`IS_SHOW`,component,`path`,`level`,icon) values(
 40, 0, '景点管理', 'scenic', 3, 'menu', 1, 'layouts/index', '/scenic', 1, 'Location'
@@ -158,7 +151,7 @@ INSERT INTO sys_role_menu (R_ID, M_ID) VALUES
 (1,11),(1,12),(1,13),(1,14),(1,15),(1,16),
 (1,17),(1,18),(1,19),(1,20),
 (1,21),(1,22),(1,23),(1,24),
-(1,30),(1,31),(1,32),(1,33),(1,34),
+(1,30),(1,31),(1,32),
 (1,40),(1,41),(1,42),(1,43),(1,44),
 (1,70),(1,71);
 -- 区县管理员：首页 + 打卡列表（含审核按钮）+ 景点管理（含增删改）
@@ -166,10 +159,9 @@ INSERT INTO sys_role_menu (R_ID, M_ID) VALUES
 (2,70),(2,71),
 (2,30),(2,31),(2,32),
 (2,40),(2,41),(2,42),(2,43),(2,44);
--- 普通用户：首页 + 我的打卡（含发起打卡）
+-- 普通用户：首页；个人打卡在前台“我的”中完成
 INSERT INTO sys_role_menu (R_ID, M_ID) VALUES
-(3,70),(3,71),
-(3,30),(3,33),(3,34);
+(3,70),(3,71);
 
 -- ===== 用户数据 =====
 -- 密码统一为 admin123 / user123（Demo明文存储）

@@ -1,0 +1,283 @@
+# CityCheckin 项目上下文
+
+这是一个“城市打卡”前后台项目，后端在仓库根目录，前端在 `city_check_in_app/`。
+
+## 一句话定位
+
+- 面向重庆城市打卡场景：用户发布美食/风景打卡，管理员审核内容，后台维护区县、美食种类、景点、用户、角色、菜单权限。
+- 后端是 Spring Boot + MyBatis Plus + H2 内存库。
+- 前端是 Vue 3 + Vite + TypeScript + Pinia + Element Plus。
+
+## 运行方式
+
+后端：
+
+```bash
+mvn spring-boot:run
+```
+
+或按 README 用 Java 8 打包运行：
+
+```bash
+mvn clean package -DskipTests
+/opt/java/jdk1.8.0_261/bin/java -jar target/city-checkin-1.0.0.jar
+```
+
+后端默认端口：`8080`。
+
+- Swagger: `http://localhost:8080/swagger-ui.html`
+- H2 Console: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:citycheckin`
+- 用户名: `sa`
+- 密码: 空
+
+前端：
+
+```bash
+cd city_check_in_app
+npm install
+npm run dev
+```
+
+前端默认 Vite 端口通常是 `5173`。`.env.development` 里 `VITE_BASE_URI="/api"`，`vite.config.ts` 会把 `/api` 代理到 `http://localhost:8080`。
+
+## 技术栈
+
+后端：
+
+- Java 8
+- Spring Boot `2.7.18`
+- MyBatis Plus `3.5.3.2`
+- H2 内存数据库，启动时执行 `src/main/resources/sql/schema.sql` 和 `data.sql`
+- Springdoc OpenAPI `1.7.0`
+- Hutool、Lombok
+
+前端：
+
+- Vue `3.2.x`
+- Vite `4.1.x`
+- TypeScript `4.8.x`
+- Pinia + `pinia-plugin-persistedstate`
+- Vue Router 4，Hash 路由
+- Element Plus `2.2.x`
+- Axios、ECharts、Dayjs、Sass
+
+## 默认账号
+
+数据来自 `src/main/resources/sql/data.sql`，每次后端重启会恢复初始数据。
+
+- `admin / admin123`: 超级管理员，拥有全部权限
+- `ljxq_admin / admin123`: 两江新区管理员，`district_id=2`
+- `yz_admin / admin123`: 渝中区管理员，`district_id=1`
+- `user1 / user123`: 普通用户
+- `user2 / user123`: 普通用户
+- `user3 / user123`: 普通用户
+
+README 里旧账号可能写过 `jb_admin`，当前种子数据实际是 `ljxq_admin`。
+
+## 后端结构
+
+核心路径：
+
+- 启动类：`src/main/java/com/citycheckin/CityCheckinApplication.java`
+- 配置：`config/`
+  - `WebConfig`: CORS、上传静态资源映射、认证拦截器注册
+  - `MybatisPlusConfig`: 分页插件
+  - `SwaggerConfig`: OpenAPI
+- 认证：`interceptor/AuthInterceptor.java`、`common/TokenManager.java`、`common/UserContext.java`
+- 统一响应：`common/Result.java`，成功格式通常是 `{ code: 200, msg: "success", data: ... }`
+- 分页响应：`common/PageResult.java`
+- 控制器：`controller/`
+- 业务：`service/` 和 `service/impl/`
+- 数据实体：`entity/`
+- Mapper：`mapper/`
+- 初始化 SQL：`src/main/resources/sql/schema.sql`、`data.sql`
+
+主要 Controller：
+
+- `AuthController`: 登录、注册、退出、当前用户信息、忘记密码、管理员重置密码
+- `HomeController`: 前台公开接口，排名、已发布打卡列表、详情、评论
+- `CheckinController`: 发起打卡、我的打卡、管理端列表、审核、点赞、评论
+- `UserController`: 用户管理、分配角色、批量删除
+- `RoleController`: 角色管理、分配菜单
+- `MenuController`: 菜单树、当前用户菜单
+- `DistrictController`: 区县管理
+- `FoodTypeController`: 美食种类管理
+- `ScenicSpotController`: 景点管理
+- `UploadController`: 图片上传
+
+## 认证和权限
+
+- 使用 Demo 级内存 Token，不是 JWT，也没有 Spring Security。
+- `TokenManager` 生成 24 小时有效的随机 token，服务重启后 token 失效。
+- 登录接口：`POST /api/auth/login`。
+- 受保护接口在 `WebConfig` 中注册为 `/api/**`，排除了：
+  - `/api/auth/login`
+  - `/api/auth/register`
+  - `/api/auth/forgotPassword`
+  - `/api/home/**`
+  - Swagger / OpenAPI 路径
+- 后端支持 `Authorization: Bearer {token}`，也支持直接传原始 token，因为拦截器只在有 `Bearer ` 前缀时裁剪。
+- 前端当前在 `request-intercept.ts` 里写的是 `config.headers.authorization = token`，也就是小写 header + 原始 token。
+- 当前登录用户上下文通过 `UserContext` 的 ThreadLocal 注入。
+
+权限模型：
+
+- 角色表：`sys_role`
+  - `SUPER_ADMIN`
+  - `DISTRICT_ADMIN`
+  - `NORMAL_USER`
+- 菜单表：`sys_menu`
+  - `type=menu`: 后台动态路由/侧边栏菜单
+  - `type=button`: 按钮权限码
+- 用户-角色：`sys_user_role`
+- 角色-菜单：`sys_role_menu`
+- 超级管理员由 `sys_user.IS_SUPER = 1` 标记。
+- 前端动态路由和按钮权限来自 `/api/auth/info` 返回的 `menus` 与 `buttons`。
+
+## 打卡业务规则
+
+打卡表：`checkin`
+
+- `type`: `food` 或 `scenic`
+- `status`: `0` 待审核、`1` 已发布、`2` 已拒绝
+- 图片字段 `images` 是逗号分隔 URL
+- 普通用户发起打卡后默认待审核
+- 普通用户每天最多打卡 10 次
+- 管理端列表：
+  - 超级管理员可看全部
+  - 区县管理员只看自己 `districtId` 对应区县
+- 审核接口 `PUT /api/checkin/review`，`status=1` 通过，`status=2` 拒绝，拒绝时需要 `rejectReason`
+- 已发布打卡可点赞、取消点赞、评论
+- 前台公开列表只展示 `status=1` 的已发布内容
+
+相关表：
+
+- `district`: 区县
+- `food_type`: 美食种类
+- `scenic_spot`: 景点
+- `checkin_like`: 点赞
+- `checkin_comment`: 评论，内容长度字段为 `VARCHAR(200)`
+
+## 前端结构
+
+根目录：`city_check_in_app/`
+
+关键路径：
+
+- 入口：`src/main.ts`
+- 根组件：`src/App.vue`
+- 路由：
+  - `src/router/index.ts`: Hash 路由
+  - `src/router/constantRoutes.ts`: 静态路由，`/home` 是前台首页，`/login` 登录，`/register` 注册
+  - `src/router/initDynamicRouter.ts`: 登录后拉取用户信息并根据后端菜单生成后台动态路由
+- 配置：`src/config/config.ts`
+  - `HOME_URL = '/home'`
+  - `LOGIN_URL = '/login'`
+  - 白名单：`/404`、`/register`
+- API：
+  - `src/apis/http.ts`: axios 默认配置
+  - `src/apis/interceptors/request-intercept.ts`: 加 `/api` 前缀、带 token、处理上传
+  - `src/apis/interceptors/response-intercept.ts`: 统一处理 `code`、401、错误提示
+  - `src/apis/*.ts`: 各业务接口
+- 状态：
+  - `src/store/user.ts`: token、用户信息、登录后权限初始化
+  - `src/store/auth.ts`: 动态路由、按钮权限、用户权限信息
+  - `src/store/settings.ts`: 布局折叠等
+  - `src/store/tabsBar.ts`: 后台页签
+- 权限指令：`src/directive/permission.ts`，用 `v-permission` 根据按钮 code 移除无权限按钮
+- 通用表格：`src/components/ProTable/`
+- 通用查询表单：`src/components/SearchForm/`
+- 后台布局：`src/views/layouts/`
+
+主要页面：
+
+- 前台首页：`src/views/front/home.vue`
+  - 发现/我的 Tab
+  - 已发布打卡瀑布流
+  - 我的打卡列表
+  - 排名侧栏
+  - 发布按钮复用 `checkin/my/AddCheckinDrawer.vue`
+  - 详情弹窗：`front/CheckinDetailDialog.vue`
+- 登录/注册：`src/views/login/`
+- 后台首页：`src/views/home/index.vue`
+- 打卡管理：
+  - `src/views/checkin/list/`: 管理端审核列表
+  - `src/views/checkin/my/`: 我的打卡/发起打卡
+- 系统管理：
+  - `src/views/system/user/`
+  - `src/views/system/role/`
+  - `src/views/system/menu/`
+  - `src/views/system/district/`
+  - `src/views/system/foodType/`
+- 景点管理：`src/views/scenic/`
+
+## 前后端接口对接习惯
+
+- 前端 API 文件里通常写 `/api/...`，请求拦截器又会拼上 `VITE_BASE_URI`。
+- 因为 `VITE_BASE_URI=/api`，实际浏览器请求会变成 `/api/api/...`，再由 Vite proxy 去掉第一段 `/api`，最终到后端仍是 `/api/...`。
+- 这个写法有点绕，但当前项目就是这样工作的；改动时别只改其中一边。
+- 后端统一返回 `Result`，前端响应拦截器会直接返回 `data`，所以页面里通常拿到的是 `{ code, msg, data }`。
+- 上传接口：前端 `uploadImage` 调 `POST /api/upload/image`，后端保存到 `./uploads`，URL 前缀 `/uploads`。
+
+## 数据库和初始化
+
+- H2 是内存库，配置在 `application.yml`：
+  - `jdbc:h2:mem:citycheckin;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE,USER`
+- 每次启动都会执行：
+  - `classpath:sql/schema.sql`
+  - `classpath:sql/data.sql`
+- 密码是明文存储，Demo 用途。
+- 示例图片在 `uploads/example/`，示例打卡记录引用的是 `http://localhost:8080/uploads/example/...`。
+
+## 开发注意点
+
+- 后端目标 Java 是 1.8，别引入 Java 8 不支持的语法/API。
+- Token 是内存态，后端重启后需要重新登录。
+- 权限菜单数据同时影响后台路由和侧边栏，新增后台页面时通常要：
+  1. 新建 `src/views/...` 页面
+  2. 后端 `data.sql` 或接口新增 `sys_menu` 记录
+  3. 角色分配对应菜单/按钮权限
+- 前端动态路由的 `component` 字段要能匹配 `src/views/${component}.vue`。
+- 按钮权限 code 要与 `v-permission` 使用值一致。
+- 区县管理员的数据范围依赖 `UserContext.getDistrictId()`。
+- `getScenicSpotList` 前端目前不带 `districtId` 参数，接口注释里曾经有按区县过滤的版本。
+- 用户新增逻辑里要留意 `SysUserServiceImpl.addUser` 是否设置了 username；如果后续用户新增异常，优先检查这里。
+- `data.sql` 中 `foodType` 菜单路径是 `/system/foodtype`，文件目录是 `system/foodType`，路由 path 大小写和组件路径是两个概念。
+
+## 常用命令
+
+后端编译：
+
+```bash
+mvn clean package -DskipTests
+```
+
+后端启动：
+
+```bash
+mvn spring-boot:run
+```
+
+前端开发：
+
+```bash
+cd city_check_in_app
+npm run dev
+```
+
+前端检查/构建：
+
+```bash
+cd city_check_in_app
+npm run type-check
+npm run build
+```
+
+## 面向后续 Codex 的工作方式
+
+- 先读 `.codex`，再按任务读相关控制器、Service、API 文件和 Vue 页面。
+- 做后端功能时，同步检查前端 `src/apis/` 是否已有封装。
+- 做前端后台菜单页面时，同步检查 `sys_menu` 和角色权限数据。
+- 做权限问题时，优先查 `/api/auth/info` 返回的 `menus/buttons`、`initDynamicRouter.ts`、`permission.ts`。
+- 做接口问题时，记住前端 URL 拼接链路：API 文件 `/api/...` + `VITE_BASE_URI=/api` + Vite proxy rewrite。

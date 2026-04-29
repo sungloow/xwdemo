@@ -4,7 +4,7 @@
     :destroy-on-close="true"
     :show-close="false"
     :align-center="true"
-    width="680px"
+    width="960px"
     class="add-checkin-dialog"
   >
     <div class="drawer-shell">
@@ -88,17 +88,6 @@
             </el-form-item>
 
             <div class="form-grid">
-              <el-form-item label="所属区县" prop="districtId">
-                <el-select v-model="formData.districtId" placeholder="请选择所属区县" clearable>
-                  <el-option
-                    v-for="district in districts"
-                    :key="district.id"
-                    :label="district.name"
-                    :value="district.id"
-                  />
-                </el-select>
-              </el-form-item>
-
               <el-form-item v-if="formData.type === 'food'" label="美食类型" prop="foodTypeId">
                 <el-select v-model="formData.foodTypeId" placeholder="请选择美食类型" clearable>
                   <el-option
@@ -153,12 +142,22 @@
               />
             </el-form-item>
 
-            <el-form-item label="打卡地址" prop="address">
+            <el-form-item label="打卡地址" prop="address" class="map-form-item">
+              <LocationPicker
+                class="location-picker-field"
+                :model-value="{
+                  address: formData.address,
+                  latitude: formData.latitude,
+                  longitude: formData.longitude,
+                }"
+                @change="handleLocationChange"
+              />
               <el-input
+                class="address-fallback"
                 v-model="formData.address"
                 maxlength="100"
                 show-word-limit
-                placeholder="例如：渝中区解放碑八一路 66 号"
+                placeholder="可补充门牌、楼层或摊位信息"
                 clearable
               />
             </el-form-item>
@@ -184,13 +183,47 @@
   import { ElMessage } from 'element-plus';
   import type { FormInstance } from 'element-plus';
   import { Close, Delete, PictureFilled } from '@element-plus/icons-vue';
-  import { addCheckin, getDistrictList, getFoodTypeList, getScenicSpotList, uploadImage } from '@/apis';
+  import {
+    addCheckin,
+    getDistrictList,
+    getFoodTypeList,
+    getMyCheckinDetail,
+    getScenicSpotList,
+    updateMyCheckin,
+    uploadImage,
+  } from '@/apis';
   import { clearEmptyValue, textRule } from '@/utils';
+  import LocationPicker from './LocationPicker.vue';
 
   interface DrawerProps {
     title: string
+    mode?: 'add' | 'edit'
+    rowData?: any
     api?: (params: any) => Promise<any>
     getTableList?: () => Promise<any>
+  }
+
+  interface CheckinFormData {
+    id?: number
+    type: 'food' | 'scenic'
+    districtId: number | string
+    foodTypeId: number | string
+    scenicSpotId: number | string
+    title: string
+    content: string
+    images: string
+    address: string
+    latitude: number | string
+    longitude: number | string
+  }
+
+  interface LocationSelection {
+    address?: string
+    latitude?: number | string
+    longitude?: number | string
+    province?: string
+    city?: string
+    district?: string
   }
 
   const rules = reactive({
@@ -225,7 +258,7 @@
       trigger: 'blur',
     },
     address: {
-      required: false,
+      required: true,
       validator: (rule: any, value: any, callback: any) => textRule(rule, value, callback, 100),
       trigger: 'blur',
     },
@@ -234,7 +267,8 @@
   const ruleFormRef = ref<FormInstance>();
   const drawerVisible = ref(false);
   const drawerProps = ref<DrawerProps>({ title: '' });
-  const formData = ref({
+  const formData = ref<CheckinFormData>({
+    id: undefined,
     type: 'food',
     districtId: '',
     foodTypeId: '',
@@ -259,6 +293,7 @@
 
   const resetForm = () => {
     formData.value = {
+      id: undefined,
       type: 'food',
       districtId: '',
       foodTypeId: '',
@@ -277,6 +312,23 @@
   const acceptParams = (params: DrawerProps): void => {
     drawerProps.value = params;
     resetForm();
+    if (params.mode === 'edit' && params.rowData) {
+      const images = params.rowData.images || '';
+      formData.value = {
+        id: params.rowData.id,
+        type: params.rowData.type || 'food',
+        districtId: params.rowData.districtId || '',
+        foodTypeId: params.rowData.foodTypeId || '',
+        scenicSpotId: params.rowData.scenicSpotId || '',
+        title: params.rowData.title || '',
+        content: params.rowData.content || '',
+        images,
+        address: params.rowData.address || '',
+        latitude: params.rowData.latitude || '',
+        longitude: params.rowData.longitude || '',
+      };
+      imageList.value = images.split(',').map((item: string) => item.trim()).filter(Boolean);
+    }
     drawerVisible.value = true;
   };
 
@@ -332,14 +384,61 @@
     formData.value.images = imageList.value.join(',');
   };
 
+  const normalizeDistrictName = (name?: string) => (name || '').replace(/^重庆市/, '').trim();
+
+  const matchDistrict = (mapDistrict?: string) => {
+    const normalizedMapDistrict = normalizeDistrictName(mapDistrict);
+    if (!normalizedMapDistrict) return null;
+    return districts.value.find((item) => normalizeDistrictName(item.name) === normalizedMapDistrict) || null;
+  };
+
+  const openedDistrictText = computed(() => {
+    const names = districts.value.map((item) => item.name).filter(Boolean);
+    return names.length ? names.join('、') : '暂无已开通区县';
+  });
+
+  const handleLocationChange = (location: LocationSelection) => {
+    formData.value.address = location.address || '';
+    formData.value.latitude = location.latitude || '';
+    formData.value.longitude = location.longitude || '';
+    const district = matchDistrict(location.district);
+    if (district) {
+      formData.value.districtId = district.id;
+      ruleFormRef.value?.clearValidate('districtId');
+    } else {
+      formData.value.districtId = '';
+      formData.value.scenicSpotId = '';
+      if (location.district) {
+        ElMessage.warning(`系统暂未开通 ${location.district} 打卡，目前已开通：${openedDistrictText.value}`);
+      }
+    }
+    ruleFormRef.value?.clearValidate('address');
+  };
+
   const handleSubmit = () => {
     ruleFormRef.value?.validate(async (valid) => {
       if (!valid) return;
+      if (!formData.value.districtId) {
+        ElMessage.warning(`请在地图上选择已开通区县内的地点，目前已开通：${openedDistrictText.value}`);
+        return;
+      }
       try {
         loading.value = true;
         const params = clearEmptyValue(formData.value);
-        await addCheckin(params);
-        ElMessage.success({ message: '发起打卡成功！' });
+        if (drawerProps.value.mode === 'edit') {
+          const latest: any = await getMyCheckinDetail(formData.value.id!);
+          if (latest.data?.status === 1) {
+            ElMessage.warning('该打卡已审核通过，不能继续编辑');
+            await drawerProps.value.getTableList?.();
+            drawerVisible.value = false;
+            return;
+          }
+          await updateMyCheckin(params);
+          ElMessage.success({ message: '保存成功，已重新进入审核队列' });
+        } else {
+          await addCheckin(params);
+          ElMessage.success({ message: '发起打卡成功！' });
+        }
         await drawerProps.value.getTableList?.();
         drawerVisible.value = false;
       } finally {
@@ -607,6 +706,20 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0 14px;
+  }
+
+  .address-fallback {
+    margin-top: 10px;
+  }
+
+  .map-form-item {
+    :deep(.el-form-item__content) {
+      display: block;
+    }
+  }
+
+  .location-picker-field {
+    width: 100%;
   }
 
   .drawer-footer {

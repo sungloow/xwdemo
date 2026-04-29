@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.citycheckin.common.UserContext;
 import com.citycheckin.common.exception.BusinessException;
 import com.citycheckin.dto.CheckinAddDTO;
+import com.citycheckin.dto.CheckinUpdateDTO;
 import com.citycheckin.dto.RankItemDTO;
 import com.citycheckin.dto.ReviewDTO;
 import com.citycheckin.entity.Checkin;
@@ -42,24 +43,7 @@ public class CheckinServiceImpl extends ServiceImpl<CheckinMapper, Checkin> impl
         if (dto.getDistrictId() == null) {
             throw new BusinessException(400, "请选择区县");
         }
-        if (dto.getType() == null || dto.getType().isEmpty()) {
-            throw new BusinessException(400, "请选择打卡类型（food/scenic）");
-        }
-        if ("food".equals(dto.getType()) && dto.getFoodTypeId() == null) {
-            throw new BusinessException(400, "美食打卡请选择美食种类");
-        }
-        if ("scenic".equals(dto.getType()) && dto.getScenicSpotId() == null) {
-            throw new BusinessException(400, "风景打卡请选择风景地");
-        }
-        if ("scenic".equals(dto.getType())) {
-            ScenicSpot scenicSpot = scenicSpotService.getById(dto.getScenicSpotId());
-            if (scenicSpot == null) {
-                throw new BusinessException(404, "所选景点不存在");
-            }
-            if (!dto.getDistrictId().equals(scenicSpot.getDistrictId())) {
-                throw new BusinessException(400, "所选景点与所属区县不匹配");
-            }
-        }
+        validateCheckinData(dto.getDistrictId(), dto.getType(), dto.getFoodTypeId(), dto.getScenicSpotId());
 
         Checkin checkin = new Checkin();
         checkin.setUserId(userId);
@@ -77,6 +61,43 @@ public class CheckinServiceImpl extends ServiceImpl<CheckinMapper, Checkin> impl
         checkin.setCreateTime(LocalDateTime.now());
         checkin.setUpdateTime(LocalDateTime.now());
         save(checkin);
+    }
+
+    @Override
+    public void updateMyCheckin(CheckinUpdateDTO dto) {
+        if (dto.getId() == null) {
+            throw new BusinessException(400, "缺少打卡ID");
+        }
+        Integer userId = UserContext.getUserId();
+        Checkin checkin = getById(dto.getId());
+        if (checkin == null || !userId.equals(checkin.getUserId())) {
+            throw new BusinessException(404, "打卡记录不存在");
+        }
+        if (Integer.valueOf(1).equals(checkin.getStatus())) {
+            throw new BusinessException(400, "该打卡已审核通过，不能继续编辑");
+        }
+        if (!Integer.valueOf(0).equals(checkin.getStatus()) && !Integer.valueOf(2).equals(checkin.getStatus())) {
+            throw new BusinessException(400, "当前状态不允许编辑");
+        }
+        if (dto.getDistrictId() == null) {
+            throw new BusinessException(400, "请选择区县");
+        }
+        validateCheckinData(dto.getDistrictId(), dto.getType(), dto.getFoodTypeId(), dto.getScenicSpotId());
+
+        checkin.setDistrictId(dto.getDistrictId());
+        checkin.setType(dto.getType());
+        checkin.setFoodTypeId(dto.getFoodTypeId());
+        checkin.setScenicSpotId(dto.getScenicSpotId());
+        checkin.setTitle(dto.getTitle());
+        checkin.setContent(dto.getContent());
+        checkin.setImages(dto.getImages());
+        checkin.setAddress(dto.getAddress());
+        checkin.setLatitude(dto.getLatitude());
+        checkin.setLongitude(dto.getLongitude());
+        checkin.setStatus(0);
+        checkin.setRejectReason(null);
+        checkin.setUpdateTime(LocalDateTime.now());
+        updateById(checkin);
     }
 
     @Override
@@ -140,6 +161,15 @@ public class CheckinServiceImpl extends ServiceImpl<CheckinMapper, Checkin> impl
     }
 
     @Override
+    public Checkin getMyDetail(Integer id, Integer userId) {
+        Checkin checkin = baseMapper.selectDetailById(id);
+        if (checkin == null || !userId.equals(checkin.getUserId())) {
+            throw new BusinessException(404, "打卡记录不存在");
+        }
+        return checkin;
+    }
+
+    @Override
     public List<CheckinComment> listPublishedComments(Integer checkinId) {
         ensurePublished(checkinId);
         return checkinCommentMapper.selectByCheckinId(checkinId);
@@ -190,6 +220,30 @@ public class CheckinServiceImpl extends ServiceImpl<CheckinMapper, Checkin> impl
         Checkin checkin = getById(checkinId);
         if (checkin == null || !Integer.valueOf(1).equals(checkin.getStatus())) {
             throw new BusinessException(404, "打卡内容不存在或未发布");
+        }
+    }
+
+    private void validateCheckinData(Integer districtId, String type, Integer foodTypeId, Integer scenicSpotId) {
+        if (type == null || type.isEmpty()) {
+            throw new BusinessException(400, "请选择打卡类型（food/scenic）");
+        }
+        if (!"food".equals(type) && !"scenic".equals(type)) {
+            throw new BusinessException(400, "打卡类型只能为 food 或 scenic");
+        }
+        if ("food".equals(type) && foodTypeId == null) {
+            throw new BusinessException(400, "美食打卡请选择美食种类");
+        }
+        if ("scenic".equals(type) && scenicSpotId == null) {
+            throw new BusinessException(400, "风景打卡请选择风景地");
+        }
+        if ("scenic".equals(type)) {
+            ScenicSpot scenicSpot = scenicSpotService.getById(scenicSpotId);
+            if (scenicSpot == null) {
+                throw new BusinessException(404, "所选景点不存在");
+            }
+            if (!districtId.equals(scenicSpot.getDistrictId())) {
+                throw new BusinessException(400, "所选景点与所属区县不匹配");
+            }
         }
     }
 }

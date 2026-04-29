@@ -129,7 +129,7 @@
 
         <template v-else>
           <div v-if="myRecords.length" class="my-feed">
-            <article v-for="item in myRecords" :key="item.id" class="my-card">
+            <article v-for="item in myRecords" :key="item.id" class="my-card" @click="openMyDetail(item.id)">
               <div class="my-card-main">
                 <div class="my-card-top">
                   <div>
@@ -152,13 +152,17 @@
                 <p v-if="item.content" class="my-card-desc">{{ item.content }}</p>
 
                 <div v-if="splitImages(item.images).length" class="thumb-row">
-                  <el-image
+                  <div
                     v-for="image in splitImages(item.images).slice(0, 3)"
                     :key="image"
-                    :src="image"
-                    :preview-src-list="splitImages(item.images)"
-                    fit="cover"
-                  />
+                    @click.stop
+                  >
+                    <el-image
+                      :src="image"
+                      :preview-src-list="splitImages(item.images)"
+                      fit="cover"
+                    />
+                  </div>
                 </div>
 
                 <div class="my-card-foot">
@@ -227,6 +231,7 @@
 
     <AddCheckinDrawer ref="addDrawerRef" />
     <CheckinDetailDialog ref="detailDialogRef" @changed="handleDetailChanged" />
+    <MyCheckinDetailDialog ref="myDetailDialogRef" @edit="openEditDrawer" />
   </div>
 </template>
 
@@ -239,6 +244,7 @@
   import { useAuthStore } from '@/store/auth';
   import { useUserStore } from '@/store/user';
   import AddCheckinDrawer from '@/views/checkin/my/AddCheckinDrawer.vue';
+  import MyCheckinDetailDialog from '@/views/front/MyCheckinDetailDialog.vue';
   import CheckinDetailDialog from '@/views/front/CheckinDetailDialog.vue';
 
   const router = useRouter();
@@ -246,6 +252,7 @@
   const authStore: any = useAuthStore();
   const addDrawerRef = ref();
   const detailDialogRef = ref();
+  const myDetailDialogRef = ref();
 
   const activeTab = ref<'public' | 'my'>('public');
   const loading = reactive({ feed: false, rank: false });
@@ -402,6 +409,21 @@
 
   const openDetail = (id: number) => {
     detailDialogRef.value?.open(id);
+  };
+
+  const openMyDetail = (id: number) => {
+    myDetailDialogRef.value?.open(id);
+  };
+
+  const openEditDrawer = (detail: any) => {
+    addDrawerRef.value.acceptParams({
+      title: '编辑打卡',
+      mode: 'edit',
+      rowData: detail,
+      getTableList: async () => {
+        await Promise.all([loadOverview(), loadPublicFeed(1), loadMyFeed(1)]);
+      },
+    });
   };
 
   const handleDetailChanged = (payload: { id: number; likeCount: number; commentCount: number; liked: boolean }) => {
@@ -809,6 +831,13 @@
 
   .my-card {
     padding: 18px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(31, 41, 55, 0.08);
+    }
   }
 
   .my-card-top {
@@ -844,6 +873,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     margin-top: 14px;
+
+    > div {
+      min-width: 0;
+    }
 
     :deep(.el-image) {
       width: 100%;

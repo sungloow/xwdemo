@@ -74,64 +74,73 @@
             </div>
           </div>
 
-          <div class="detail-content">
-            <h2>{{ detail.title || '未命名打卡' }}</h2>
-            <p v-if="detail.content">{{ detail.content }}</p>
-            <div class="detail-meta">
-              <span v-if="detail.foodTypeName || detail.scenicSpotName">{{ detail.foodTypeName || detail.scenicSpotName }}</span>
-              <span v-if="detail.address">{{ detail.address }}</span>
-            </div>
-          </div>
-
-          <div class="detail-actions">
-            <button
-              type="button"
-              class="action-btn like-btn"
-              :class="{ active: detail.liked }"
-              @click="toggleLike"
-            >
-              <svg class="like-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  class="like-icon-fill"
-                  d="M9 10.2 12.9 4c.25-.4.72-.62 1.18-.54 1.33.23 2.1 1.58 1.6 2.83L14.5 9.2h3.4c1.55 0 2.7 1.43 2.36 2.94l-1.05 4.76A3.2 3.2 0 0 1 16.08 19H9V10.2Z"
-                />
-                <path d="M4 10h3v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z" />
-                <path
-                  d="M7 18.8h9.08a3.2 3.2 0 0 0 3.13-2.5l1.05-4.17A2.4 2.4 0 0 0 17.93 9H14.5l1.18-2.71c.5-1.25-.27-2.6-1.6-2.83-.46-.08-.93.14-1.18.54L9 10.2H7"
-                />
-              </svg>
-              <span>{{ detail.liked ? '已点赞' : '赞一下' }}</span>
-              <strong>{{ detail.likeCount || 0 }}</strong>
-            </button>
-            <!-- <button type="button" class="action-btn comment-btn" @click="focusCommentInput">
-              <el-icon><ChatDotRound /></el-icon>
-              <span>写评论</span>
-              <strong>{{ detail.commentCount || 0 }}</strong>
-            </button> -->
-          </div>
-
-          <div class="comment-wrap">
-            <div class="comment-title">
-              <div>
-                <strong>全部评论</strong>
-                <span>{{ detail.commentCount || 0 }} 条互动</span>
+          <div class="detail-scroll">
+            <div class="detail-content">
+              <h2>{{ detail.title || '未命名打卡' }}</h2>
+              <p v-if="detail.content">{{ detail.content }}</p>
+              <div class="detail-meta">
+                <span v-if="detail.foodTypeName || detail.scenicSpotName">{{ detail.foodTypeName || detail.scenicSpotName }}</span>
               </div>
-              <em>按时间顺序展示</em>
             </div>
-            <div class="comment-panel">
-              <div v-if="comments.length" class="comment-list">
-                <div v-for="item in comments" :key="item.id" class="comment-item">
-                  <div class="comment-avatar">{{ (item.username || '评').slice(0, 1) }}</div>
-                  <div class="comment-body">
-                    <div class="comment-line">
-                      <strong>{{ item.username || '匿名用户' }}</strong>
-                      <span>{{ formatTime(item.createTime) }}</span>
+
+            <div v-if="detail.latitude && detail.longitude" class="location-card">
+              <div class="location-card-head">
+                <strong>打卡地点</strong>
+                <span v-if="detail.address">{{ detail.address }}</span>
+              </div>
+              <CheckinLocationMap
+                :latitude="detail.latitude"
+                :longitude="detail.longitude"
+                :address="detail.address"
+                :title="detail.title"
+              />
+            </div>
+
+            <div class="detail-actions">
+              <button
+                type="button"
+                class="action-btn like-btn"
+                :class="{ active: detail.liked }"
+                @click="toggleLike"
+              >
+                <svg class="like-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    class="like-icon-fill"
+                    d="M9 10.2 12.9 4c.25-.4.72-.62 1.18-.54 1.33.23 2.1 1.58 1.6 2.83L14.5 9.2h3.4c1.55 0 2.7 1.43 2.36 2.94l-1.05 4.76A3.2 3.2 0 0 1 16.08 19H9V10.2Z"
+                  />
+                  <path d="M4 10h3v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z" />
+                  <path
+                    d="M7 18.8h9.08a3.2 3.2 0 0 0 3.13-2.5l1.05-4.17A2.4 2.4 0 0 0 17.93 9H14.5l1.18-2.71c.5-1.25-.27-2.6-1.6-2.83-.46-.08-.93.14-1.18.54L9 10.2H7"
+                  />
+                </svg>
+                <span>{{ detail.liked ? '已点赞' : '赞一下' }}</span>
+                <strong>{{ detail.likeCount || 0 }}</strong>
+              </button>
+            </div>
+
+            <div class="comment-wrap">
+              <div class="comment-title">
+                <div>
+                  <strong>全部评论</strong>
+                  <span>{{ detail.commentCount || 0 }} 条互动</span>
+                </div>
+                <em>按时间顺序展示</em>
+              </div>
+              <div class="comment-panel">
+                <div v-if="comments.length" class="comment-list">
+                  <div v-for="item in comments" :key="item.id" class="comment-item">
+                    <div class="comment-avatar">{{ (item.username || '评').slice(0, 1) }}</div>
+                    <div class="comment-body">
+                      <div class="comment-line">
+                        <strong>{{ item.username || '匿名用户' }}</strong>
+                        <span>{{ formatTime(item.createTime) }}</span>
+                      </div>
+                      <p>{{ item.content }}</p>
                     </div>
-                    <p>{{ item.content }}</p>
                   </div>
                 </div>
+                <el-empty v-else description="还没有评论，来做第一个发言的人吧" :image-size="72" />
               </div>
-              <el-empty v-else description="还没有评论，来做第一个发言的人吧" :image-size="72" />
             </div>
           </div>
 
@@ -174,6 +183,7 @@
   import { addCheckinComment, getCheckinComments, getCheckinDetail, likeCheckin, unlikeCheckin } from '@/apis';
   import { ChatDotRound, Close } from '@element-plus/icons-vue';
   import { useUserStore } from '@/store/user';
+  import CheckinLocationMap from '@/views/front/CheckinLocationMap.vue';
 
   const emit = defineEmits<{
     (e: 'changed', payload: { id: number; likeCount: number; commentCount: number; liked: boolean }): void;
@@ -607,18 +617,7 @@
 
   .detail-content {
     flex-shrink: 0;
-    max-height: 168px;
     padding: 12px 0 10px;
-    overflow: auto;
-
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #f2c8d1;
-      border-radius: 999px;
-    }
 
     h2 {
       margin: 0;
@@ -647,7 +646,33 @@
   .detail-actions {
     gap: 8px;
     padding: 6px 0 8px;
+  }
+
+  .location-card {
+    padding: 12px 0;
+    border-top: 1px solid #f6e4e8;
     border-bottom: 1px solid #f6e4e8;
+  }
+
+  .location-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+
+    strong {
+      color: #111827;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    span {
+      min-width: 0;
+      color: #6b7280;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: right;
+    }
   }
 
   .action-btn {
@@ -725,11 +750,23 @@
   }
 
   .comment-wrap {
+    padding-top: 10px;
+  }
+
+  .detail-scroll {
     flex: 1;
     min-height: 0;
-    padding-top: 10px;
-    display: flex;
-    flex-direction: column;
+    overflow: auto;
+    padding-right: 4px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #f2c8d1;
+      border-radius: 999px;
+    }
   }
 
   .comment-title {
@@ -755,31 +792,17 @@
   }
 
   .comment-panel {
-    min-height: 0;
-    flex: 1;
     padding: 4px 6px 4px 0;
     border-radius: 16px;
     background: linear-gradient(180deg, #fff8f9 0%, #fffdfd 100%);
     border: 1px solid #f8e7eb;
-    overflow: hidden;
   }
 
   .comment-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    height: 100%;
-    overflow: auto;
     padding: 6px 8px 6px 14px;
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #f2c8d1;
-      border-radius: 999px;
-    }
   }
 
   .comment-item {
