@@ -1,0 +1,22 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.web.json",
+  "allowJs": true,
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "exclude": ["node_modules", "dist", "**/*.js"],
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+    "ignoreDeprecations": "5.0", 
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["node"]
+  },
+
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}
